@@ -1,17 +1,17 @@
 # heatmap_yolov5
 
-## 1. Show in screen
+### 1. Show in screen
 
 ```xhost +local:docker```
 
-## 2. Build docker-compose
+### 2. Build docker-compose
 
 docker-compose up --build -d
 
-## 3. Exec bash in container
+### 3. Exec bash in container
 
 docker exec -it heatmap_yolov5_heatmap_1 bash
 
-## 4. Run code
+### 4. Run code
 
 python main.py
