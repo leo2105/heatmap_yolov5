@@ -1,0 +1,24 @@
+version: '3.8'
+services:
+  heatmap:
+    runtime: nvidia
+    build: 
+      context: heatmap
+      dockerfile: Dockerfile
+    shm_size: 1g
+    ipc: host
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    stdin_open: true
+    tty: true
+    restart: always
+    environment:
+      - NVIDIA_VISIBLE=0
+      - DISPLAY=$DISPLAY
+    devices:
+      - /dev/video0:/dev/video0
+    volumes:
+      - ./heatmap:/app
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    
