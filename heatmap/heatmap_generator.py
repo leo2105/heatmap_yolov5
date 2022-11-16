@@ -7,37 +7,29 @@ class HMap:
         self.width = width
         self.height = height
         self.name = name
-        self.accum_image = np.zeros((self.height, self.width), np.uint8)
-        self.heatmap = np.zeros((self.height, self.width), np.uint8)
+        self.accum_image = np.zeros((self.height, self.width), np.int32)
+        self.accum_image_int = np.zeros((self.height, self.width), np.uint8)
+        self.heatmap = np.zeros((self.height, self.width, 3), np.uint8)
         
         self.fade_interval = fade_interval
         self.st = time.time()
-    
-    def reset_heatmap(self):
-        self.accum_image = self.adjust_brightness_contrast(self.accum_image, brightness=-2)
-        self.accum_image = cv2.blur(self.accum_image, (55,55))
-    
-    def adjust_brightness_contrast(self, image, brightness=0., contrast=0.):
-        return cv2.addWeighted(image, 1 + float(contrast) / 100., image, 0, float(brightness))
+
         
-    def get_mask_from_bbox(self, x1,y1,x2,y2):
-        cx,cy = int(x1+(x2)/2), int(y1+(y2)/2)
+    def get_mask_from_bbox(self, x, y):
         mask = np.zeros((self.height, self.width), np.uint8)
-        radius = 20 #int(((x2-x1)+(y2-y1))/2)
-        mask = cv2.circle(mask, (x1+20,y1+20), radius, (75,75,75), -1)
+        radius = 20
+        mask = cv2.circle(mask, (x,y), radius, (75,75,75), -1)
         mask = cv2.blur(mask, (105,105), cv2.BORDER_DEFAULT)
         return mask
         
-    def apply_color_map(self, x1,y1,x2,y2):
-        #if time.time() - self.st > self.fade_interval:
-        #    self.st = time.time()
-        #    self.reset_heatmap()
-
+    def apply_color_map(self, x, y):
         # create a mask from image and add it to accum_image
-        mask  = self.get_mask_from_bbox(x1,y1,x2,y2)
+        mask = self.get_mask_from_bbox(x, y).astype(np.int32)
         self.accum_image = cv2.add(self.accum_image, mask)
-        self.heatmap = cv2.applyColorMap(self.accum_image, cv2.COLORMAP_JET)
+        aux_img = self.accum_image * 255 // self.accum_image.max()
+        self.accum_image_int = np.array(aux_img, dtype=np.uint8)
 
     def get_heatmap(self, frame):
+        self.heatmap = cv2.applyColorMap(self.accum_image_int, cv2.COLORMAP_JET)
         frame = cv2.addWeighted(frame, 0.7, self.heatmap, 0.5, 0) 
         return frame
